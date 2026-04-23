@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZD Store — AirPods & Accessoires Apple</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+:root {
+  --black: #080808;
+  --white: #f8f8f5;
+  --accent: #00e5ff;
+  --accent2: #c8ff00;
+  --gray: #141414;
+  --gray2: #1e1e1e;
+  --border: #242424;
+  --muted: #666;
+  --danger: #ff4c4c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--black);color:var(--white);overflow-x:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 2.5rem;
+  background:rgba(8,8,8,0.9);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.nav-links{display:flex;gap:1.8rem;list-style:none}
+.nav-links a{color:var(--white);text-decoration:none;font-size:.88rem;font-weight:500;opacity:.6;transition:opacity .2s}
+.nav-links a:hover{opacity:1}
+.cart-btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--black);
+  border:none;padding:.55rem 1.3rem;border-radius:2rem;
+  font-weight:700;font-size:.85rem;cursor:pointer;font-family:'Outfit',sans-serif;
+  display:flex;align-items:center;gap:.5rem;transition:transform .15s,box-shadow .2s;
+}
+.cart-btn:hover{transform:scale(1.04);box-shadow:0 4px 20px rgba(0,229,255,.25)}
+#cart-count{
+  background:var(--black);color:var(--accent);
+  border-radius:50%;width:1.3rem;height:1.3rem;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:800;
+}
+.admin-link{
+  color:var(--muted);font-size:.78rem;text-decoration:none;
+  border:1px solid var(--border);padding:.35rem .8rem;border-radius:1rem;
+  transition:color .2s,border-color .2s;
+}
+.admin-link:hover{color:var(--accent);border-color:var(--accent)}
+
+/* ─── PROMO ─── */
+.promo-bar{
+  background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--black);
+  text-align:center;padding:.6rem 1rem;font-weight:700;font-size:.85rem;letter-spacing:.3px;
+  margin-top:0;
+}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  text-align:center;padding:9rem 2rem 5rem;position:relative;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 40%,rgba(0,229,255,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 70% 60%,rgba(200,255,0,.05) 0%,transparent 60%);
+}
+.hero-grid{
+  position:absolute;inset:0;pointer-events:none;opacity:.04;
+  background-image:linear-gradient(var(--white) 1px,transparent 1px),linear-gradient(90deg,var(--white) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-label{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(0,229,255,.08);color:var(--accent);
+  border:1px solid rgba(0,229,255,.2);border-radius:2rem;
+  padding:.3rem 1.1rem;font-size:.78rem;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:1.8rem;
+  animation:fadeUp .6s ease both;
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(5rem,14vw,11rem);line-height:.9;letter-spacing:3px;
+  animation:fadeUp .6s .1s ease both;
+}
+.hero h1 .line2{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  margin-top:1.8rem;max-width:520px;
+  font-size:1rem;font-weight:300;color:var(--muted);line-height:1.7;
+  animation:fadeUp .6s .2s ease both;
+}
+.hero-cta{
+  margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp .6s .3s ease both;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--black);
+  padding:.9rem 2.2rem;border-radius:3rem;border:none;
+  font-weight:700;font-size:1rem;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:transform .15s,box-shadow .2s;text-decoration:none;display:inline-block;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 35px rgba(0,229,255,.2)}
+.btn-ghost{
+  background:transparent;color:var(--white);
+  padding:.9rem 2.2rem;border-radius:3rem;border:1px solid var(--border);
+  font-weight:500;font-size:1rem;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:border-color .15s,color .15s;text-decoration:none;display:inline-block;
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.badges{
+  margin-top:4rem;display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp .6s .4s ease both;
+}
+.badge{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--muted)}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+/* ─── SECTION ─── */
+.section{padding:6rem 2rem;max-width:1300px;margin:0 auto}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,6vw,4rem);letter-spacing:1px}
+.section-sub{color:var(--muted);font-size:.9rem;margin-top:.4rem;margin-bottom:3rem}
+
+/* ─── PRODUCTS ─── */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1.8rem}
+.product-card{
+  background:var(--gray);border:1px solid var(--border);border-radius:1.4rem;
+  overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s;
+  position:relative;cursor:default;
+}
+.product-card:hover{transform:translateY(-5px);border-color:#333;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.product-img-wrap{
+  width:100%;aspect-ratio:1;background:#0d0d0d;
+  position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;
+}
+.product-img-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 100%,rgba(0,229,255,.06) 0%,transparent 65%);
+}
+.product-img-wrap img.main-img{
+  width:72%;height:72%;object-fit:contain;
+  transition:transform .4s ease;filter:drop-shadow(0 8px 28px rgba(0,0,0,.6));z-index:1;
+}
+.product-card:hover .main-img{transform:scale(1.08) translateY(-4px)}
+.badge-offert{
+  position:absolute;top:.9rem;left:.9rem;z-index:2;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--black);
+  font-size:.62rem;font-weight:800;text-transform:uppercase;
+  padding:.22rem .7rem;border-radius:1rem;letter-spacing:.5px;
+}
+.coque-chip{
+  position:absolute;bottom:.8rem;right:.8rem;z-index:2;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:.5rem;width:50px;height:50px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.coque-chip img{width:42px;height:42px;object-fit:contain}
+.product-info{padding:1.4rem}
+.product-name{font-weight:700;font-size:1rem;margin-bottom:.35rem}
+.product-desc{color:var(--muted);font-size:.82rem;line-height:1.55;margin-bottom:1.1rem}
+.product-footer{display:flex;align-items:center;justify-content:space-between}
+.product-price{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);letter-spacing:1px;line-height:1}
+.product-price small{font-family:'Outfit',sans-serif;font-size:.68rem;color:var(--muted);font-weight:400;display:block;margin-top:.1rem}
+.add-btn{
+  background:var(--white);color:var(--black);border:none;border-radius:2rem;
+  padding:.5rem 1.2rem;font-weight:700;font-size:.82rem;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:background .15s,transform .1s;
+}
+.add-btn:hover{background:var(--accent);transform:scale(1.05)}
+
+/* ─── SHIPPING ─── */
+.shipping-section{background:#0a0a0a;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:5rem 2rem}
+.shipping-inner{max-width:1300px;margin:0 auto}
+.shipping-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.8rem;margin-top:3rem}
+.shipping-card{
+  background:var(--gray);border:1px solid var(--border);border-radius:1.1rem;padding:1.6rem;
+  transition:border-color .2s,transform .2s;
+}
+.shipping-card:hover{border-color:#333;transform:translateY(-2px)}
+.shipping-icon{font-size:2rem;margin-bottom:1rem}
+.shipping-title{font-weight:700;margin-bottom:.5rem}
+.shipping-text{color:var(--muted);font-size:.83rem;line-height:1.55}
+
+/* ─── MODALS BASE ─── */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.9);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;padding:1rem;
+}
+.overlay.open{display:flex}
+.modal-box{
+  background:var(--gray);border:1px solid var(--border);border-radius:1.6rem;
+  padding:2.2rem;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;
+  animation:slideUp .3s ease;
+}
+.modal-box h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;margin-bottom:1.8rem}
+
+/* ─── CART ─── */
+.cart-items{margin-bottom:1.5rem}
+.cart-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.85rem 0;border-bottom:1px solid var(--border);gap:1rem;
+}
+.cart-item-left{display:flex;align-items:center;gap:.8rem}
+.cart-item-thumb{width:46px;height:46px;object-fit:contain;border-radius:.5rem;background:#0d0d0d;padding:4px}
+.cart-item-name{font-weight:600;font-size:.9rem}
+.cart-item-sub{font-size:.72rem;color:var(--accent)}
+.cart-item-right{display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.cart-item-price{color:var(--accent);font-weight:700}
+.cart-item-qty{display:flex;align-items:center;gap:.4rem}
+.qty-btn{background:var(--gray2);border:1px solid var(--border);color:var(--white);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;transition:color .15s}
+.cart-item-remove:hover{color:var(--danger)}
+.cart-total{
+  display:flex;justify-content:space-between;align-items:center;
+  font-weight:600;padding:1.1rem 0;border-top:1px solid #333;margin-bottom:1.5rem;
+}
+.cart-total-amt{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent)}
+
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.3rem;margin-top:.9rem;font-weight:500;letter-spacing:.3px}
+input,select{
+  width:100%;background:#0a0a0a;border:1px solid var(--border);border-radius:.7rem;
+  color:var(--white);padding:.75rem 1rem;font-size:.9rem;font-family:'Outfit',sans-serif;
+  transition:border-color .2s;
+}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+input::placeholder{color:var(--muted)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+/* ─── STRIPE ─── */
+.stripe-section{margin-top:1.2rem}
+.stripe-label{font-size:.8rem;color:var(--muted);font-weight:500;letter-spacing:.3px;margin-bottom:.5rem}
+#card-element{
+  background:#0a0a0a;border:1px solid var(--border);border-radius:.7rem;
+  padding:.85rem 1rem;transition:border-color .2s;
+}
+#card-element.focused{border-color:var(--accent)}
+#card-errors{color:var(--danger);font-size:.82rem;margin-top:.5rem;min-height:1.2rem}
+.stripe-badge{
+  display:flex;align-items:center;gap:.5rem;margin-top:.6rem;
+  font-size:.75rem;color:var(--muted);
+}
+.stripe-badge::before{content:'🔒'}
+
+.modal-footer{display:flex;gap:1rem;margin-top:1.5rem}
+.btn-cancel{flex:1;background:transparent;border:1px solid var(--border);color:var(--white);border-radius:2rem;padding:.85rem;font-size:.9rem;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .15s}
+.btn-cancel:hover{border-color:#555}
+.btn-pay{
+  flex:2;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--black);
+  border:none;border-radius:2rem;padding:.85rem;font-size:.95rem;font-weight:700;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:transform .15s,opacity .15s;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.btn-pay:hover{transform:scale(1.02)}
+.btn-pay:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn-pay.loading .spinner{display:block}
+.btn-pay.loading .btn-pay-text{display:none}
+
+/* ─── BORDEREAU ─── */
+.bordereau-box{
+  background:#fff;color:#111;border-radius:1.3rem;
+  padding:2.2rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;
+  font-family:'Outfit',sans-serif;animation:slideUp .3s ease;
+}
+.bordereau-box h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;margin-bottom:1.5rem;color:#111}
+.bord-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  border:1.5px solid #e0e0e0;border-radius:.7rem;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  font-size:.84rem;line-height:1.7;gap:1rem;
+}
+.bord-header h3{font-size:.68rem;text-transform:uppercase;color:#aaa;margin-bottom:.3rem;letter-spacing:.5px}
+.bord-products{border:1.5px solid #eee;border-radius:.7rem;overflow:hidden;margin-bottom:.8rem}
+.bord-row{display:flex;justify-content:space-between;padding:.65rem 1.1rem;font-size:.84rem;border-bottom:1px solid #f5f5f5}
+.bord-row:last-child{border-bottom:none}
+.bord-row.total{font-weight:700;background:#f8f8f8}
+.bord-ref{text-align:center;margin:.8rem 0}
+.mr-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#e30613;letter-spacing:1px;margin-bottom:.3rem}
+.barcode{font-size:2rem;letter-spacing:5px;font-family:monospace;color:#111}
+.ref-text{font-size:.76rem;color:#999;margin-top:.3rem}
+.success-note{
+  background:#f0fff4;border:1px solid #b7f5c8;border-left:3px solid #22c55e;
+  border-radius:.6rem;padding:.8rem 1rem;font-size:.8rem;color:#166534;line-height:1.55;
+}
+.bord-actions{display:flex;gap:1rem;margin-top:1.5rem}
+.btn-print{flex:1;background:#111;color:#fff;border:none;border-radius:2rem;padding:.85rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.btn-print:hover{background:#333}
+.btn-done{flex:1;background:linear-gradient(135deg,#00e5ff,#c8ff00);color:#111;border:none;border-radius:2rem;padding:.85rem;font-size:.9rem;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif}
+
+/* ─── ADMIN LOGIN ─── */
+.admin-login-box{
+  background:var(--gray);border:1px solid var(--border);border-radius:1.6rem;
+  padding:2.5rem;width:100%;max-width:420px;animation:slideUp .3s ease;
+}
+.admin-login-box h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;margin-bottom:.5rem}
+.admin-login-box p{color:var(--muted);font-size:.88rem;margin-bottom:1.8rem}
+.btn-login{
+  width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--black);
+  border:none;border-radius:2rem;padding:.9rem;font-size:1rem;font-weight:700;
+  cursor:pointer;font-family:'Outfit',sans-serif;margin-top:1.2rem;transition:transform .15s;
+}
+.btn-login:hover{transform:scale(1.02)}
+.login-error{color:var(--danger);font-size:.82rem;margin-top:.6rem;display:none}
+
+/* ─── ADMIN PANEL ─── */
+.admin-panel{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:var(--black);overflow-y:auto;
+  animation:fadeIn .3s ease;
+}
+.admin-panel.open{display:block}
+.admin-header{
+  background:var(--gray);border-bottom:1px solid var(--border);
+  padding:1.2rem 2rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;
+}
+.admin-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.admin-close{background:transparent;border:1px solid var(--border);color:var(--white);padding:.45rem 1rem;border-radius:1rem;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:border-color .15s}
+.admin-close:hover{border-color:var(--danger);color:var(--danger)}
+.admin-body{max-width:1100px;margin:0 auto;padding:2.5rem 2rem}
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.2rem;margin-bottom:2.5rem}
+.stat-card{
+  background:var(--gray);border:1px solid var(--border);border-radius:1rem;padding:1.4rem;
+  transition:border-color .2s;
+}
+.stat-card:hover{border-color:#333}
+.stat-label{font-size:.78rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--accent);letter-spacing:1px}
+.stat-sub{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.admin-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px;margin-bottom:1.2rem}
+.orders-list{display:flex;flex-direction:column;gap:1rem}
+.order-card{
+  background:var(--gray);border:1px solid var(--border);border-radius:1rem;padding:1.4rem;
+  transition:border-color .2s;
+}
+.order-card:hover{border-color:#333}
+.order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.order-ref{font-weight:700;font-size:.95rem}
+.order-date{font-size:.78rem;color:var(--muted)}
+.order-status{
+  padding:.25rem .8rem;border-radius:1rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+}
+.status-paid{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+.status-pending{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.25)}
+.order-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin-bottom:1rem}
+.order-info-item{}
+.order-info-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem}
+.order-info-value{font-size:.88rem;font-weight:500}
+.order-products{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.order-product-tag{
+  background:var(--gray2);border:1px solid var(--border);
+  border-radius:.5rem;padding:.2rem .6rem;font-size:.75rem;color:var(--white);
+}
+.order-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+.btn-sm{
+  padding:.35rem .8rem;border-radius:1rem;font-size:.78rem;font-weight:600;cursor:pointer;
+  font-family:'Outfit',sans-serif;border:1px solid var(--border);background:transparent;color:var(--white);
+  transition:all .15s;
+}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm.danger:hover{border-color:var(--danger);color:var(--danger)}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty-icon{font-size:3rem;margin-bottom:1rem}
+
+/* ─── FOOTER ─── */
+footer{border-top:1px solid var(--border);padding:3rem 2rem;text-align:center;color:var(--muted);font-size:.82rem;line-height:2}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem}
+
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:500;
+  padding:.8rem 1.6rem;border-radius:2rem;font-weight:700;font-size:.88rem;
+  transform:translateY(80px);opacity:0;transition:all .3s ease;
+  max-width:320px;
+}
+.toast.success{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--black)}
+.toast.error{background:var(--danger);color:#fff}
+.toast.show{transform:translateY(0);opacity:1}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:640px){
+  nav{padding:1rem 1.2rem}
+  .nav-links{display:none}
+  .form-row{grid-template-columns:1fr}
+  .modal-box,.admin-login-box{padding:1.5rem}
+  .admin-body{padding:1.5rem 1rem}
+}
+@media print{
+  body *{visibility:hidden}
+  .bordereau-box,.bordereau-box *{visibility:visible}
+  .bordereau-box{position:fixed;top:0;left:0;width:100%;border-radius:0;max-height:none}
+  .bord-actions{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="promo-bar">🎁 Coque offerte avec chaque commande · Paiement Stripe sécurisé · Livraison Mondial Relay</div>
+
+<nav>
+  <div class="logo">ZD Store</div>
+  <ul class="nav-links">
+    <li><a href="#produits">Produits</a></li>
+    <li><a href="#livraison">Livraison</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" class="admin-link" onclick="openAdminLogin(event)">⚙️ Admin</a>
+    <button class="cart-btn" onclick="openCart()">🛒 Panier <span id="cart-count">0</span></button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-label">✦ Audio Premium · Livraison France</div>
+  <h1>ZD<br><span class="line2">STORE</span></h1>
+  <p class="hero-sub">AirPods & accessoires Apple au meilleur prix. Paiement Stripe 100% sécurisé, livraison Mondial Relay, coque offerte à chaque commande.</p>
+  <div class="hero-cta">
+    <a href="#produits" class="btn-primary">Voir les produits</a>
+    <a href="#livraison" class="btn-ghost">Comment commander ?</a>
+  </div>
+  <div class="badges">
+    <div class="badge"><div class="badge-dot"></div>Paiement Stripe sécurisé</div>
+    <div class="badge"><div class="badge-dot"></div>Livraison Mondial Relay</div>
+    <div class="badge"><div class="badge-dot"></div>Coque offerte</div>
+    <div class="badge"><div class="badge-dot"></div>Bordereau inclus</div>
+  </div>
+</section>
+
+<!-- PRODUITS -->
+<section class="section" id="produits">
+  <h2 class="section-title">Nos Produits</h2>
+  <p class="section-sub">🎁 Une coque de protection offerte avec chaque commande</p>
+  <div class="products-grid" id="products-grid"></div>
+</section>
+
+<!-- LIVRAISON -->
+<section class="shipping-section" id="livraison">
+  <div class="shipping-inner">
+    <h2 class="section-title">Comment commander ?</h2>
+    <p class="section-sub" style="margin-bottom:0">4 étapes simples</p>
+    <div class="shipping-grid">
+      <div class="shipping-card"><div class="shipping-icon">🛒</div><div class="shipping-title">1. Ajoutez au panier</div><div class="shipping-text">Choisissez vos produits. Coque offerte incluse automatiquement.</div></div>
+      <div class="shipping-card"><div class="shipping-icon">📋</div><div class="shipping-title">2. Vos coordonnées</div><div class="shipping-text">Entrez votre adresse de livraison et vos informations.</div></div>
+      <div class="shipping-card"><div class="shipping-icon">💳</div><div class="shipping-title">3. Paiement Stripe</div><div class="shipping-text">Paiement par carte bancaire 100% sécurisé via Stripe.</div></div>
+      <div class="shipping-card"><div class="shipping-icon">📦</div><div class="shipping-title">4. Expédition Mondial Relay</div><div class="shipping-text">Bordereau généré automatiquement. Frais à votre charge selon le point relais.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">ZD Store</div>
+  <p>Vente d'accessoires Apple · Livraison <strong style="color:var(--accent)">Mondial Relay</strong> · Paiement <strong style="color:var(--accent)">Stripe</strong></p>
+  <p>Contact : <a href="mailto:zaydkharoua085@gmail.com" style="color:var(--muted);text-decoration:none">zaydkharoua085@gmail.com</a></p>
+  <p style="margin-top:.8rem;font-size:.72rem;color:#333">© 2025 ZD Store — Tous droits réservés</p>
+</footer>
+
+<!-- ── CART MODAL ── -->
+<div class="overlay" id="cart-overlay">
+  <div class="modal-box">
+    <h2>🛒 Mon Panier</h2>
+    <div class="cart-items" id="cart-items-list"></div>
+    <div class="cart-total">Total <span class="cart-total-amt" id="cart-total-price">0 €</span></div>
+
+    <label>Prénom & Nom *</label>
+    <input type="text" id="client-name" placeholder="Zayd Kharoua">
+    <label>Email *</label>
+    <input type="email" id="client-email" placeholder="email@exemple.com">
+    <label>Téléphone *</label>
+    <input type="tel" id="client-phone" placeholder="06 12 34 56 78">
+    <label>Adresse *</label>
+    <input type="text" id="client-address" placeholder="12 rue des Lilas">
+    <div class="form-row">
+      <div><label>Code postal *</label><input type="text" id="client-zip" placeholder="69001"></div>
+      <div><label>Ville *</label><input type="text" id="client-city" placeholder="Lyon"></div>
+    </div>
+    <label>Point Relais Mondial Relay (optionnel)</label>
+    <input type="text" id="client-relay" placeholder="Ex: Tabac du Centre, Lyon 1er">
+
+    <div class="stripe-section">
+      <div class="stripe-label">💳 Carte bancaire *</div>
+      <div id="card-element"></div>
+      <div id="card-errors"></div>
+      <div class="stripe-badge">Paiement 100% sécurisé par Stripe</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCart()">Annuler</button>
+      <button class="btn-pay" id="pay-btn" onclick="processPayment()">
+        <span class="btn-pay-text">💳 Payer maintenant</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── BORDEREAU MODAL ── -->
+<div class="overlay" id="bordereau-overlay">
+  <div class="bordereau-box">
+    <h2>📦 Bordereau d'Expédition</h2>
+    <div id="bordereau-body"></div>
+    <div class="bord-actions">
+      <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
+      <button class="btn-done" onclick="closeBordereau()">Terminé ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN LOGIN ── -->
+<div class="overlay" id="admin-login-overlay">
+  <div class="admin-login-box">
+    <h2>⚙️ Espace Admin</h2>
+    <p>Connectez-vous pour accéder à vos commandes ZD Store</p>
+    <label>Mot de passe</label>
+    <input type="password" id="admin-pwd" placeholder="••••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+    <div class="login-error" id="login-error">❌ Mot de passe incorrect</div>
+    <button class="btn-login" onclick="adminLogin()">Accéder à l'espace admin →</button>
+    <div style="text-align:center;margin-top:1rem">
+      <button class="btn-cancel" style="border:none;background:none;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem" onclick="closeAdminLogin()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL ── -->
+<div class="admin-panel" id="admin-panel">
+  <div class="admin-header">
+    <div class="admin-logo">ZD Store — Admin</div>
+    <div style="display:flex;gap:.8rem;align-items:center">
+      <span style="font-size:.8rem;color:var(--muted)">zaydkharoua085@gmail.com</span>
+      <button class="admin-close" onclick="closeAdmin()">✕ Fermer</button>
+    </div>
+  </div>
+  <div class="admin-body">
+    <div class="admin-stats" id="admin-stats"></div>
+    <div class="admin-title">📋 Commandes récentes</div>
+    <div class="orders-list" id="orders-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const STRIPE_KEY = 'pk_live_51TOol1Qupvt8bv4WaHHire36oV5Uy7k6oR8GebMMM1xB0m6MSeIvtIJJBUIjIlM3i8gQTJOhWMyMlLMvKJUcjF4f00pAeAg5wt';
+const ADMIN_PWD = 'Zayd19811204?8';
+const OWNER_EMAIL = 'zaydkharoua085@gmail.com';
+const COQUE_IMG = 'https://m.media-amazon.com/images/I/61iFQyV-9RL._AC_SL1500_.jpg';
+
+const PRODUCTS = [
+  { id:1, name:'AirPods 4', price:20, desc:'Dernier modèle Apple, son cristallin, design ultra-léger, boîtier MagSafe.', img:'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6578/6578045_sd.jpg' },
+  { id:2, name:'AirPods Pro 2', price:20, desc:'Réduction de bruit active, audio spatial personnalisé, résistant IPX4.', img:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQDY3?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1660803972361' },
+  { id:3, name:'AirPods Pro 3', price:20, desc:'Nouvelle génération, ANC amélioré, autonomie renforcée, performance ultime.', img:'https://geeky-gadgets.com/wp-content/uploads/2025/03/apple-airpods-pro-3-design-and-health-features.jpg' },
+  { id:4, name:'Casque Apple (AirPods Max)', price:100, desc:'Son over-ear premium, réduction active du bruit, confort longue durée.', img:'https://www.croma.com/medias/sys_master/images/h83/h89/10074817Cool%20Blue%201.jpg' },
+  { id:5, name:'Chargeur Rapide Apple', price:20, desc:'Chargeur USB-C 20W, charge rapide compatible iPhone, AirPods et MacBook.', img:'https://m.media-amazon.com/images/I/51lhBvGarSL._AC_SL1200_.jpg' }
+];
+
+// ── STORAGE ──
+function getOrders() { try { return JSON.parse(localStorage.getItem('zd_orders') || '[]'); } catch(e) { return []; } }
+function saveOrders(o) { localStorage.setItem('zd_orders', JSON.stringify(o)); }
+
+// ── CART ──
+let cart = [];
+let stripe, cardElement;
+
+function initStripe() {
+  if (stripe) return;
+  stripe = Stripe(STRIPE_KEY);
+  const elements = stripe.elements({ appearance: { theme:'night', variables:{ colorPrimary:'#00e5ff', colorBackground:'#0a0a0a', colorText:'#f8f8f5', colorDanger:'#ff4c4c', fontFamily:'Outfit,sans-serif', borderRadius:'12px' } } });
+  cardElement = elements.create('card', { style:{ base:{ fontSize:'16px', color:'#f8f8f5', '::placeholder':{ color:'#666' } } } });
+  cardElement.mount('#card-element');
+  cardElement.on('focus', () => document.getElementById('card-element').classList.add('focused'));
+  cardElement.on('blur', () => document.getElementById('card-element').classList.remove('focused'));
+  cardElement.on('change', e => { document.getElementById('card-errors').textContent = e.error ? e.error.message : ''; });
+}
+
+function renderProducts() {
+  document.getElementById('products-grid').innerHTML = PRODUCTS.map(p => `
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <span class="badge-offert">+ Coque offerte</span>
+        <img class="main-img" src="${p.img}" alt="${p.name}" onerror="this.style.opacity='.2'">
+        <div class="coque-chip" title="Coque offerte incluse">
+          <img src="${COQUE_IMG}" alt="Coque" onerror="this.parentElement.style.display='none'">
+        </div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div class="product-price">${p.price} €<small>+ coque offerte</small></div>
+          <button class="add-btn" onclick="addToCart(${p.id})">+ Ajouter</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function addToCart(id) {
+  const p = PRODUCTS.find(p=>p.id===id);
+  const ex = cart.find(c=>c.id===id);
+  if (ex) ex.qty++; else cart.push({...p, qty:1});
+  updateCartCount();
+  showToast(`${p.name} ajouté ! 🎉`, 'success');
+}
+
+function updateCartCount() {
+  document.getElementById('cart-count').textContent = cart.reduce((s,c)=>s+c.qty, 0);
+}
+
+function openCart() {
+  renderCartItems();
+  document.getElementById('cart-overlay').classList.add('open');
+  setTimeout(initStripe, 100);
+}
+function closeCart() { document.getElementById('cart-overlay').classList.remove('open'); }
+
+function renderCartItems() {
+  const list = document.getElementById('cart-items-list');
+  if (!cart.length) {
+    list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:1.5rem 0">Votre panier est vide</p>';
+    document.getElementById('cart-total-price').textContent = '0 €';
+    return;
+  }
+  list.innerHTML = cart.map(c=>`
+    <div class="cart-item">
+      <div class="cart-item-left">
+        <img class="cart-item-thumb" src="${c.img}" alt="${c.name}" onerror="this.style.display='none'">
+        <div>
+          <div class="cart-item-name">${c.name}</div>
+          <div class="cart-item-sub">+ coque offerte ✓</div>
+        </div>
+      </div>
+      <div class="cart-item-right">
+        <div class="cart-item-qty">
+          <button class="qty-btn" onclick="changeQty(${c.id},-1)">−</button>
+          <span style="font-weight:600;min-width:20px;text-align:center">${c.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${c.id},1)">+</button>
+        </div>
+        <span class="cart-item-price">${c.price*c.qty} €</span>
+        <button class="cart-item-remove" onclick="removeFromCart(${c.id})">✕</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('cart-total-price').textContent = cart.reduce((s,c)=>s+c.price*c.qty,0) + ' €';
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(c=>c.id===id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(c=>c.id!==id);
+  updateCartCount();
+  renderCartItems();
+}
+function removeFromCart(id) { cart=cart.filter(c=>c.id!==id); updateCartCount(); renderCartItems(); }
+
+function getVal(id) { return document.getElementById(id).value.trim(); }
+
+// ── PAYMENT ──
+async function processPayment() {
+  if (!cart.length) { showToast('Votre panier est vide !', 'error'); return; }
+  const required = ['client-name','client-email','client-phone','client-address','client-zip','client-city'];
+  if (required.some(f=>!getVal(f))) { showToast('Veuillez remplir tous les champs *', 'error'); return; }
+
+  const btn = document.getElementById('pay-btn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  const total = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+
+  try {
+    // Simulate payment intent (in production this would be a backend call)
+    // For demo: we use stripe.createPaymentMethod to validate the card
+    const { paymentMethod, error } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+      billing_details: {
+        name: getVal('client-name'),
+        email: getVal('client-email'),
+        phone: getVal('client-phone'),
+        address: {
+          line1: getVal('client-address'),
+          postal_code: getVal('client-zip'),
+          city: getVal('client-city'),
+          country: 'FR'
+        }
+      }
+    });
+
+    if (error) {
+      document.getElementById('card-errors').textContent = error.message;
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      return;
+    }
+
+    // Payment method created successfully - save order
+    const order = {
+      id: 'ZD' + Date.now().toString().slice(-8),
+      date: new Date().toLocaleDateString('fr-FR'),
+      datetime: new Date().toISOString(),
+      status: 'paid',
+      client: {
+        name: getVal('client-name'),
+        email: getVal('client-email'),
+        phone: getVal('client-phone'),
+        address: getVal('client-address'),
+        zip: getVal('client-zip'),
+        city: getVal('client-city'),
+        relay: getVal('client-relay')
+      },
+      products: cart.map(c=>({ name:c.name, qty:c.qty, price:c.price })),
+      total,
+      paymentMethodId: paymentMethod.id
+    };
+
+    const orders = getOrders();
+    orders.unshift(order);
+    saveOrders(orders);
+
+    closeCart();
+    generateBordereau(order);
+
+  } catch(err) {
+    showToast('Erreur de paiement. Réessayez.', 'error');
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
+
+// ── BORDEREAU ──
+function generateBordereau(order) {
+  const rows = order.products.map(p=>`
+    <div class="bord-row">
+      <span>${p.name} × ${p.qty} <span style="font-size:.72rem;color:#bbb">(+ coque)</span></span>
+      <span>${p.price*p.qty} €</span>
+    </div>`).join('');
+
+  document.getElementById('bordereau-body').innerHTML = `
+    <div class="bord-header">
+      <div><h3>Expéditeur</h3><strong>ZD Store</strong><br>${OWNER_EMAIL}<br>France</div>
+      <div style="text-align:right"><h3>Destinataire</h3><strong>${order.client.name}</strong><br>${order.client.address}<br>${order.client.zip} ${order.client.city}<br>${order.client.phone}</div>
+    </div>
+    ${order.client.relay ? `<div style="background:#f5f5f5;border-radius:.5rem;padding:.6rem 1rem;font-size:.82rem;margin-bottom:.8rem;border:1px solid #e8e8e8">📍 Point Relais : <strong>${order.client.relay}</strong></div>` : ''}
+    <div class="bord-products">${rows}<div class="bord-row total"><span>Total payé</span><span>${order.total} €</span></div></div>
+    <div class="bord-ref">
+      <div class="mr-logo">● Mondial Relay</div>
+      <div class="barcode">|||||||||||||||||||||</div>
+      <div class="ref-text"><strong>Réf : ${order.id}</strong> · Date : ${order.date}</div>
+    </div>
+    <div class="success-note">✅ Paiement Stripe confirmé · Commande <strong>${order.id}</strong> · Expédiez ce colis avec Mondial Relay.</div>`;
+
+  document.getElementById('bordereau-overlay').classList.add('open');
+}
+
+function closeBordereau() {
+  document.getElementById('bordereau-overlay').classList.remove('open');
+  cart = []; updateCartCount();
+  showToast('Commande confirmée ! Merci 🎉', 'success');
+}
+
+// ── ADMIN ──
+function openAdminLogin(e) {
+  e && e.preventDefault();
+  document.getElementById('admin-login-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('admin-pwd').focus(), 200);
+}
+function closeAdminLogin() {
+  document.getElementById('admin-login-overlay').classList.remove('open');
+  document.getElementById('admin-pwd').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function adminLogin() {
+  const pwd = document.getElementById('admin-pwd').value;
+  if (pwd === ADMIN_PWD) {
+    closeAdminLogin();
+    openAdmin();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('admin-pwd').value = '';
+    document.getElementById('admin-pwd').focus();
+  }
+}
+
+function openAdmin() {
+  renderAdmin();
+  document.getElementById('admin-panel').classList.add('open');
+}
+function closeAdmin() { document.getElementById('admin-panel').classList.remove('open'); }
+
+function renderAdmin() {
+  const orders = getOrders();
+  const total = orders.reduce((s,o)=>s+o.total, 0);
+  const paid = orders.filter(o=>o.status==='paid').length;
+
+  document.getElementById('admin-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Commandes total</div><div class="stat-value">${orders.length}</div><div class="stat-sub">depuis l'ouverture</div></div>
+    <div class="stat-card"><div class="stat-label">Commandes payées</div><div class="stat-value">${paid}</div><div class="stat-sub">paiement Stripe confirmé</div></div>
+    <div class="stat-card"><div class="stat-label">Chiffre d'affaires</div><div class="stat-value">${total} €</div><div class="stat-sub">total encaissé</div></div>
+    <div class="stat-card"><div class="stat-label">Panier moyen</div><div class="stat-value">${orders.length ? Math.round(total/orders.length) : 0} €</div><div class="stat-sub">par commande</div></div>`;
+
+  if (!orders.length) {
+    document.getElementById('orders-list').innerHTML = `
+      <div class="empty-state"><div class="empty-icon">📭</div><p>Aucune commande pour l'instant</p><p style="font-size:.82rem;margin-top:.5rem">Les commandes apparaîtront ici dès le premier achat.</p></div>`;
+    return;
+  }
+
+  document.getElementById('orders-list').innerHTML = orders.map(o=>`
+    <div class="order-card" id="order-${o.id}">
+      <div class="order-top">
+        <div>
+          <div class="order-ref">📦 Commande #${o.id}</div>
+          <div class="order-date">${o.date} · ${o.client.city}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent)">${o.total} €</span>
+          <span class="order-status ${o.status==='paid'?'status-paid':'status-pending'}">${o.status==='paid'?'✓ Payé':'En attente'}</span>
+        </div>
+      </div>
+      <div class="order-info">
+        <div class="order-info-item"><div class="order-info-label">Client</div><div class="order-info-value">${o.client.name}</div></div>
+        <div class="order-info-item"><div class="order-info-label">Email</div><div class="order-info-value" style="font-size:.82rem">${o.client.email}</div></div>
+        <div class="order-info-item"><div class="order-info-label">Téléphone</div><div class="order-info-value">${o.client.phone}</div></div>
+        <div class="order-info-item"><div class="order-info-label">Adresse</div><div class="order-info-value" style="font-size:.82rem">${o.client.address}, ${o.client.zip} ${o.client.city}</div></div>
+        ${o.client.relay ? `<div class="order-info-item"><div class="order-info-label">Point Relais</div><div class="order-info-value" style="font-size:.82rem">${o.client.relay}</div></div>` : ''}
+      </div>
+      <div class="order-products">
+        ${o.products.map(p=>`<span class="order-product-tag">${p.name} ×${p.qty}</span>`).join('')}
+        <span class="order-product-tag" style="color:var(--accent);border-color:rgba(0,229,255,.2)">+ coques offertes</span>
+      </div>
+      <div class="order-actions">
+        <button class="btn-sm" onclick="printOrder('${o.id}')">🖨️ Bordereau</button>
+        <button class="btn-sm" onclick="copyEmail('${o.client.email}')">📧 Copier email</button>
+        <button class="btn-sm danger" onclick="deleteOrder('${o.id}')">🗑️ Supprimer</button>
+      </div>
+    </div>`).join('');
+}
+
+function printOrder(id) {
+  const orders = getOrders();
+  const o = orders.find(o=>o.id===id);
+  if (!o) return;
+  generateBordereau(o);
+}
+
+function copyEmail(email) {
+  navigator.clipboard.writeText(email).then(()=>showToast('Email copié !', 'success'));
+}
+
+function deleteOrder(id) {
+  if (!confirm('Supprimer cette commande ?')) return;
+  const orders = getOrders().filter(o=>o.id!==id);
+  saveOrders(orders);
+  renderAdmin();
+  showToast('Commande supprimée', 'success');
+}
+
+// ── TOAST ──
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── CLOSE ON OVERLAY CLICK ──
+['cart-overlay','bordereau-overlay','admin-login-overlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click', function(e){
+    if (e.target===this) {
+      if (id==='cart-overlay') closeCart();
+      else if (id==='bordereau-overlay') closeBordereau();
+      else if (id==='admin-login-overlay') closeAdminLogin();
+    }
+  });
+});
+
+renderProducts();
+</script>
+</body>
+</html>
